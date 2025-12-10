@@ -1,44 +1,57 @@
 pipeline {
     agent any
+
     stages {
         stage('Checkout Codebase') {
             steps {
+                // Clean workspace before checkout
                 cleanWs()
-                checkout([$class: 'GitSCM',
-                          branches: [[name: '*/main']], // explicitly use main
-                          userRemoteConfigs: [[
-                              credentialsId: 'GitHubSShkey',
-                              url: 'git@github.com:yosrayaakoubi/ConsoleLauncher.git'
-                          ]]
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: '*/main']],
+                    userRemoteConfigs: [[
+                        credentialsId: 'GitHubSShkey',
+                        url: 'git@github.com:yosrayaakoubi/ConsoleLauncher.git'
+                    ]]
                 ])
             }
         }
+
         stage('Build') {
             steps {
                 echo 'Building project...'
                 sh '''
+                    # Create directories for libs and compiled classes
                     mkdir -p lib target
+
+                    # Download JUnit console standalone jar if not already present
                     curl -L -o lib/junit-platform-console-standalone-1.8.1.jar \
                     https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/1.8.1/junit-platform-console-standalone-1.8.1.jar
-                    javac -d target -cp lib/junit-platform-console-standalone-1.8.1.jar src/test/java/FirstUnitTest.java
+
+                    # Compile all Java test files
+                    find src/test/java -name "*.java" > sources.txt
+                    javac -d target -cp lib/junit-platform-console-standalone-1.8.1.jar @sources.txt
                 '''
             }
         }
+
         stage('Test') {
             steps {
                 echo 'Running tests...'
                 sh '''
+                    # Run all compiled test classes
                     java -jar lib/junit-platform-console-standalone-1.8.1.jar \
                     -cp target \
-                    -c FirstUnitTest
+                    --scan-class-path
                 '''
             }
         }
+
         stage('Deploy') {
             steps {
                 echo 'Deploying...'
+                // Add your deployment commands here
             }
         }
     }
 }
-
