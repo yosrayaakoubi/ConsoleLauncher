@@ -1,11 +1,12 @@
+package test;
+
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class SimpleTest {
-
+public class FirstUnitTest {
     @Test
-    public void testMultiply() {
-        int result = 2 * 3;
-        assertEquals(6, result, "2 * 3 should equal 6");
+    public void testAddition() {
+        int a = 2, b = 3;
+        assertEquals(5, a + b);
     }
 }
