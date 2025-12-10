@@ -4,15 +4,13 @@ pipeline {
     stages {
         stage('Checkout Codebase') {
             steps {
-                // Clean workspace before checkout
                 cleanWs()
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: '*/main']],
-                    userRemoteConfigs: [[
-                        credentialsId: 'GitHubSShkey',
-                        url: 'git@github.com:yosrayaakoubi/ConsoleLauncher.git'
-                    ]]
+                checkout([$class: 'GitSCM',
+                          branches: [[name: '*/main']],
+                          userRemoteConfigs: [[
+                              credentialsId: 'GitHubSShkey',
+                              url: 'git@github.com:yosrayaakoubi/ConsoleLauncher.git'
+                          ]]
                 ])
             }
         }
@@ -21,14 +19,13 @@ pipeline {
             steps {
                 echo 'Building project...'
                 sh '''
-                    # Create directories for libs and compiled classes
                     mkdir -p lib target
 
-                    # Download JUnit console standalone jar if not already present
+                    # Télécharger JUnit Console Standalone
                     curl -L -o lib/junit-platform-console-standalone-1.8.1.jar \
                     https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/1.8.1/junit-platform-console-standalone-1.8.1.jar
 
-                    # Compile all Java test files
+                    # Compiler tous les fichiers Java dans src/test/java
                     find src/test/java -name "*.java" > sources.txt
                     javac -d target -cp lib/junit-platform-console-standalone-1.8.1.jar @sources.txt
                 '''
@@ -39,7 +36,7 @@ pipeline {
             steps {
                 echo 'Running tests...'
                 sh '''
-                    # Run all compiled test classes
+                    # Exécuter tous les tests en scannant le classpath
                     java -jar lib/junit-platform-console-standalone-1.8.1.jar \
                     -cp target \
                     --scan-class-path
@@ -50,8 +47,20 @@ pipeline {
         stage('Deploy') {
             steps {
                 echo 'Deploying...'
-                // Add your deployment commands here
+                // Ici vous pouvez ajouter vos étapes de déploiement
             }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline finished.'
+        }
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed.'
         }
     }
 }
